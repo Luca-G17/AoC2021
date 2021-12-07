@@ -48,9 +48,6 @@ int computeDay(int w, wave* ws[], wave* holding[]){
     int x = -1;
     for (int i = 0; i < w; i++){
         if (ws[i]->age == 0){
-            /*
-            
-            */
             x = i;
             ws[i]->age = 6;
         }
@@ -92,7 +89,6 @@ int computeDay(int w, wave* ws[], wave* holding[]){
         else
             holding[1] = nw;
     }
-
     return newW;
 }
 long countFish(int w, wave* ws[], wave* hld[2]){
@@ -105,22 +101,11 @@ long countFish(int w, wave* ws[], wave* hld[2]){
     }
     return total;
 }
-void printFishCounts(int w, wave* ws[], wave* hld[2]){
-    for (int i = 0; i < w; i++){
-        printf("There are %2ld fish aged %d\n", ws[i]->count, ws[i]->age);
-    }
-    for (int i = 0; i < 2; i++){
-        if (hld[i] != NULL)
-            printf("There are %2ld fish aged %d\n", hld[i]->count, hld[i]->age);
-    }
-}
 int simulateDays(int d, int w, wave* ws[], wave* hld[]){
     int newN = w;
     hld[0] = NULL; hld[1] = NULL;
     for (int i = 0; i < d; i++){
         newN = computeDay(newN, ws, hld);
-        // printf("Day %d\n", i + 1);
-        // printFishCounts(newN, ws, hld);
     }
     return newN;
 }
