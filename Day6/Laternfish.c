@@ -133,5 +133,5 @@ int main(int n, char *args[n]){
     int w = simulateDays(days, x, waves, hld);
     long fish = countFish(w, waves, hld);
     printf("After %d days there are %ld Laternfish\n", days, fish);
-    freeWaves(x, waves, hld);
+    freeWaves(w, waves, hld);
 }
