@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <limits.h>
-#define SEARCH_RANGE 1000
+#define SEARCH_RANGE 150
 int readFile(char* filename, int nums[]){
     FILE *in = fopen(filename, "r");
     char buffer[4000];
