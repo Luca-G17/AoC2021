@@ -134,6 +134,8 @@ int main(int n, char *args[n]){
     int t = countDots(g);
     printf("After 1 fold there was %d dots\n", t);
     performFolds(g, 1, f, folds);
+    t = countDots(g);
+    printf("After %d folds there are %d dots\n", f, t);
     printGrid(g);
     freeGrid(g);
 }
