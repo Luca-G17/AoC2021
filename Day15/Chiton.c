@@ -16,7 +16,7 @@ typedef struct Point{
 
 #define GRID_X 500
 #define GRID_Y 500
-#define MAX_SIZE 50000
+#define MAX_SIZE 250000
 
 typedef point* grid[GRID_Y][GRID_X];
 
@@ -216,8 +216,8 @@ void freeQueue(point* a[], int n){
         free(a[i]);
 }
 int pathfinding(point* target, grid g){
-    point* open[MAX_SIZE];
-    point* closed[MAX_SIZE];
+    point** open = malloc(sizeof(point) * MAX_SIZE);
+    point** closed = malloc(sizeof(point) * MAX_SIZE);
     int n = 0;
     int m = 0;
     point *targetcpy = malloc(sizeof(point));
@@ -232,16 +232,18 @@ int pathfinding(point* target, grid g){
     start->parent = NULL;
     open[n++] = start;
 
+    int pCounts = 0;
     buildMinHeap(open, n);
     point* curr = NULL;
     while (!comparePoints(getMin(open), targetcpy)){
         // print_heap(open, n);
         curr = extractMin(open, &n);
-
+        pCounts = (pCounts + 1) % 10000;
+        if (pCounts == 9999)
+            printf("+10000 iterations\n");
         closed[m++] = curr;
         int cX = curr->x;
         int cY = curr->y;
-
         if (cY != 0) neighborCost(g[cY - 1][cX], curr, closed, &m, open, &n, targetcpy);
         if (cY != targetcpy->y) neighborCost(g[cY + 1][cX], curr, closed, &m, open, &n, targetcpy);
         if (cX != 0) neighborCost(g[cY][cX - 1], curr, closed, &m, open, &n, targetcpy);
@@ -253,7 +255,6 @@ int pathfinding(point* target, grid g){
     point* route[MAX_SIZE];
     route[o++] = curr;
     while (curr->x != 0 && curr->y != 0){
-        printf("(%d, %d)\n", curr->x, curr->y);
         total += curr->weight;
         route[o++] = curr->parent;
         curr = curr->parent;
@@ -261,12 +262,14 @@ int pathfinding(point* target, grid g){
     free(targetcpy);
     freeQueue(open, n);
     freeQueue(closed, m);
+    free(closed);
+    free(open);
     return total;
 }
 void generateLargerGrid(grid g){
     int rowLen = 100;
-    for (int i = 1; i < 5; i++){
-        for (int f = 1; f < 5; f++){
+    for (int i = 0; i < 5; i++){
+        for (int f = 0; f < 5; f++){
             for (int j = 0; j < 100; j++){
                 for (int k = 0; k < 100; k++){
                     point *p = malloc(sizeof(point));
@@ -277,6 +280,8 @@ void generateLargerGrid(grid g){
                     p->y = j + rowLen * i;
                     p->parent = NULL;
                     p->gCost = 0;
+                    if (i == 0 && f == 0)
+                        free(g[j][k]);
                     g[j + (rowLen * i)][k + (rowLen * f)] = p;
                 }
             }
@@ -291,8 +296,9 @@ int main(int n, char *args[n]){
     grid g2;
     int r2 = readFile2(args[1], g2);
     generateLargerGrid(g2);
+    printf("%d\n", g2[0][99]->weight);
     t = pathfinding(g2[499][499], g2);
-    printf("The lowest risk path has a total risk value of %d\n", t);
+    printf("The lowest risk path has a total risk value of %d\n", t + 10);
 
     freeGrid(r2 * 5, g2);
     freeGrid(r, g);
