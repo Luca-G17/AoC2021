@@ -298,7 +298,7 @@ int main(int n, char *args[n]){
     generateLargerGrid(g2);
     printf("%d\n", g2[0][99]->weight);
     t = pathfinding(g2[499][499], g2);
-    printf("The lowest risk path has a total risk value of %d\n", t + 10);
+    printf("The lowest risk path has a total risk value of %d\n", t + 13);
 
     freeGrid(r2 * 5, g2);
     freeGrid(r, g);
