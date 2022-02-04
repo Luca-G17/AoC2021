@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <math.h>
+#include <time.h>
 
 typedef struct Point{
     int x;
@@ -16,7 +17,7 @@ typedef struct Point{
 
 #define GRID_X 500
 #define GRID_Y 500
-#define MAX_SIZE 250000
+#define MAX_SIZE 500500
 
 typedef point* grid[GRID_Y][GRID_X];
 
@@ -159,6 +160,14 @@ void removeAt(point* a[], int *n, int i){
     }
     *n -= 1;
 }
+int computeGridHash(point* p){
+    return (p->x * 1000 + p->y);
+}
+void removeFromHashSetAt(point* a[], point* p){
+    int i = computeGridHash(p);
+    free(a[i]);
+    a[i] = NULL;
+}
 int heuristic(int x, int y, int tx, int ty){
     int dx = (x - tx);
     int dy = (y - ty);
@@ -176,6 +185,7 @@ bool comparePoints(point* p1, point* p2){
         return true;
     return false;
 }
+
 void neighborCost(point* neighbor, point* curr, point* closed[], int *m, point* open[], int *n, point* target){
     int cost = curr->gCost + neighbor->weight;
     bool isOpen = false;
@@ -188,16 +198,15 @@ void neighborCost(point* neighbor, point* curr, point* closed[], int *m, point* 
                 isOpen = true;
         }
     }
-
-    for (int i = 0; i < *m; i++){
-        if (comparePoints(neighbor, closed[i])){
+    int addr = computeGridHash(neighbor);
+    if (addr >= 0 && addr <= 500500){
+        if (closed[addr] != NULL){
             if (cost < neighbor->gCost)
-                removeAt(closed, m, i);
+                removeFromHashSetAt(closed, neighbor);
             else
                 isClosed = true;
         }
     }
-
     if (!isOpen && !isClosed){
         point *p = malloc(sizeof(point));
         p->gCost = cost;
@@ -212,12 +221,19 @@ void neighborCost(point* neighbor, point* curr, point* closed[], int *m, point* 
     }
 }
 void freeQueue(point* a[], int n){
-    for (int i = 0; i < n; i++)
-        free(a[i]);
+    for (int i = 0; i < n; i++){
+        if (a[i] != NULL)
+            free(a[i]);
+    }
+}
+void buildClosed(point* closed[]){
+    for (int i = 0; i < MAX_SIZE; i++)
+        closed[i] = NULL;
 }
 int pathfinding(point* target, grid g){
     point** open = malloc(sizeof(point) * MAX_SIZE);
     point** closed = malloc(sizeof(point) * MAX_SIZE);
+    buildClosed(closed);
     int n = 0;
     int m = 0;
     point *targetcpy = malloc(sizeof(point));
@@ -232,16 +248,17 @@ int pathfinding(point* target, grid g){
     start->parent = NULL;
     open[n++] = start;
 
-    int pCounts = 0;
+    // int pCounts = 0;
     buildMinHeap(open, n);
     point* curr = NULL;
     while (!comparePoints(getMin(open), targetcpy)){
-        // print_heap(open, n);
         curr = extractMin(open, &n);
+        /*
         pCounts = (pCounts + 1) % 10000;
         if (pCounts == 9999)
             printf("+10000 iterations\n");
-        closed[m++] = curr;
+        */
+        closed[computeGridHash(curr)] = curr;
         int cX = curr->x;
         int cY = curr->y;
         if (cY != 0) neighborCost(g[cY - 1][cX], curr, closed, &m, open, &n, targetcpy);
@@ -261,7 +278,7 @@ int pathfinding(point* target, grid g){
     }
     free(targetcpy);
     freeQueue(open, n);
-    freeQueue(closed, m);
+    freeQueue(closed, MAX_SIZE);
     free(closed);
     free(open);
     return total;
@@ -291,14 +308,20 @@ void generateLargerGrid(grid g){
 int main(int n, char *args[n]){
     grid g;
     int r = readFile(args[1], g);
+    clock_t begin = clock();
     int t = pathfinding(g[99][99], g);
-    printf("The lowest risk path has a total risk value of %d\n", t);
+    clock_t end = clock();
+    double timeSpent = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("(100x100) The lowest risk path has a total risk value of %d (execution time: %lf)\n", t, timeSpent);
+    
     grid g2;
     int r2 = readFile2(args[1], g2);
     generateLargerGrid(g2);
-    printf("%d\n", g2[0][99]->weight);
+    begin = clock();
     t = pathfinding(g2[499][499], g2);
-    printf("The lowest risk path has a total risk value of %d\n", t + 13);
+    end = clock();
+    timeSpent = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("(500x500) The lowest risk path has a total risk value of %d (execution time: %lf)\n", t + 13, timeSpent);
 
     freeGrid(r2 * 5, g2);
     freeGrid(r, g);
